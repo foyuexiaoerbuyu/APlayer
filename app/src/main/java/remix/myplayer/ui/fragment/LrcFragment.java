@@ -25,6 +25,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
 import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import remix.myplayer.APlayerApplication;
 import remix.myplayer.R;
@@ -34,6 +35,7 @@ import remix.myplayer.bean.netease.NSongSearchResponse;
 import remix.myplayer.interfaces.OnInflateFinishListener;
 import remix.myplayer.lyric.DefaultLrcParser;
 import remix.myplayer.lyric.NewLrcView;
+import remix.myplayer.lyric.NewSearchLrc;
 import remix.myplayer.lyric.bean.LrcRow;
 import remix.myplayer.misc.cache.DiskCache;
 import remix.myplayer.misc.cache.DiskLruCache;
@@ -104,6 +106,41 @@ public class LrcFragment extends BaseFragment {
             mLrcView.setText(getString(R.string.no_lrc));
             return;
         }
+        mLrcView.setTag(mInfo.getId());
+        new NewSearchLrc(mInfo).getLrc(manualPath,new Observer<List<LrcRow>>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                mLrcView.setText(getString(R.string.searching));
+                mDisposable = d;
+            }
+
+            @Override
+            public void onNext(List<LrcRow> lrcRows) {
+                if(mLrcView.getTag() != null && (int)mLrcView.getTag() == mInfo.getId()){
+                    mLrcList = lrcRows;
+                    if(mLrcList == null || mLrcList.size() == 0) {
+                        mLrcView.setText(getString(R.string.no_lrc));
+                        return;
+                    }
+                    mLrcView.setLrcRows(mLrcList);
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                if(mLrcView.getTag() != null && (int)mLrcView.getTag() == mInfo.getId()){
+                    mLrcList = new ArrayList<>();
+                    mLrcView.setText(getString(R.string.no_lrc));
+                }
+            }
+
+            @Override
+            public void onComplete() {
+
+            }
+        });
+        if(true)
+            return;
         final DefaultLrcParser lrcParser = new DefaultLrcParser();
 
         //网易歌词
@@ -115,26 +152,21 @@ public class LrcFragment extends BaseFragment {
                             final NLrcResponse lrcResponse = new Gson().fromJson(body1.string(),NLrcResponse.class);
                             final Charset utf8 = Charset.forName("utf8");
                             List<LrcRow> combine = lrcParser.getLrcRows(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(lrcResponse.lrc.lyric.getBytes(utf8)),utf8)),false,mInfo.getTitle(),mInfo.getArtist() + "/original");
-                            //有翻译 尝试合并
-                            if(lrcResponse.tlyric != null && !TextUtils.isEmpty(lrcResponse.tlyric.lyric)){
-                                List<LrcRow> translate = lrcParser.getLrcRows(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(lrcResponse.tlyric.lyric.getBytes(utf8)),utf8)),false,mInfo.getTitle(),mInfo.getArtist() + "/translate");
-                                if(translate != null && translate.size() > 0){
-                                    LrcRow translateFirstRow = translate.get(0);
-                                    int delta = 0;
-                                    boolean find = false;
-                                    for(int i = 0; i < combine.size();i++){
-                                        if(translateFirstRow.getTime() != combine.get(i).getTime() && !find){
-                                            delta++;
-                                        }else {
-                                            find = true;
-                                            if(i - delta < translate.size()){
-                                                combine.get(i).setContent(combine.get(i).getContent());
-                                                combine.get(i).setTranslate(translate.get(i - delta).getContent());
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            //有翻译 合并
+//                            if(lrcResponse.tlyric != null && !TextUtils.isEmpty(lrcResponse.tlyric.lyric)){
+//                                List<LrcRow> translate = lrcParser.getLrcRows(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(lrcResponse.tlyric.lyric.getBytes(utf8)),utf8)),false,mInfo.getTitle(),mInfo.getArtist() + "/translate");
+//                                if(translate != null && translate.size() > 0){
+//                                    for(int i = 0 ; i < translate.size();i++){
+//                                        for(int j = 0 ; j < combine.size();j++){
+//                                            if(translate.get(i).getTime() == combine.get(j).getTime()){
+//                                                combine.get(j).setTranslate(translate.get(i).getContent());
+//                                                break;
+//                                            }
+//                                        }
+//                                    }
+//
+//                                }
+//                            }
                             lrcParser.saveLrcRows(combine,mInfo.getTitle() + "/" + mInfo.getArtist());
                             return combine;
                         }))
@@ -153,7 +185,6 @@ public class LrcFragment extends BaseFragment {
         boolean onlineFirst = SPUtil.getValue(APlayerApplication.getContext(),"Setting","OnlineLrc",false);
         Observable<List<LrcRow>> last = Observable.concat(onlineFirst ? neteaseObservable : localObservable ,onlineFirst ? localObservable : neteaseObservable).firstOrError().toObservable();
 
-        final int songId = mInfo.getId();
         Observable.create((ObservableOnSubscribe<List<LrcRow>>) e -> {
             //手动设置的歌词
             if(!TextUtils.isEmpty(manualPath)){
@@ -172,23 +203,36 @@ public class LrcFragment extends BaseFragment {
             e.onComplete();
         })).switchIfEmpty(last)
         .compose(RxUtil.applyScheduler())
-        .doOnSubscribe(disposable -> {
-            mLrcView.setText(getString(R.string.searching));
-            mDisposable = disposable;
-        })
-        .subscribe(lrcRows -> {
-            if(songId == mInfo.getId()){
-                mLrcList = lrcRows;
-                if(mLrcList == null || mLrcList.size() == 0) {
-                    mLrcView.setText(getString(R.string.no_lrc));
-                    return;
-                }
-                mLrcView.setLrcRows(mLrcList);
+        .subscribe(new Observer<List<LrcRow>>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                mLrcView.setText(getString(R.string.searching));
+                mDisposable = d;
             }
-        }, throwable -> {
-            if(songId == mInfo.getId()){
-                mLrcList = new ArrayList<>();
-                mLrcView.setText(getString(R.string.no_lrc));
+
+            @Override
+            public void onNext(List<LrcRow> lrcRows) {
+                if(mLrcView.getTag() != null && (int)mLrcView.getTag() == mInfo.getId()){
+                    mLrcList = lrcRows;
+                    if(mLrcList == null || mLrcList.size() == 0) {
+                        mLrcView.setText(getString(R.string.no_lrc));
+                        return;
+                    }
+                    mLrcView.setLrcRows(mLrcList);
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                if(mLrcView.getTag() != null && (int)mLrcView.getTag() == mInfo.getId()){
+                    mLrcList = new ArrayList<>();
+                    mLrcView.setText(getString(R.string.no_lrc));
+                }
+            }
+
+            @Override
+            public void onComplete() {
+
             }
         });
 
