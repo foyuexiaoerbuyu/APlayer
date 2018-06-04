@@ -2,7 +2,8 @@
 <FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/app_widget_small_height">
+    android:layout_height="@dimen/app_widget_small_height"
+    android:background="@drawable/bg_corner_app_widget_white_1f">
     <TextView
         android:visibility="gone"
         android:id="@+id/appwidget_artist"
@@ -66,7 +67,8 @@
                     android:paddingLeft="@dimen/d4_size"
                     android:paddingRight="@dimen/d4_size"
                     android:layout_centerVertical="true"
-                    android:layout_toLeftOf="@id/appwidget_timer"/>
+                    android:layout_toLeftOf="@id/appwidget_timer"
+                    android:visibility="gone"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
