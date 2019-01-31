@@ -46,7 +46,7 @@ open class BaseMusicFragment : BaseFragment(), MusicEventCallback {
     mHasPermission = has
   }
 
-  override fun onPlayListChanged() {
+  override fun onPlayListChanged(name: String) {
 
   }
 
