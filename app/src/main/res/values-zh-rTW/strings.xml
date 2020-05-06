@@ -391,8 +391,8 @@
   <string name="select_language_tips">將強制設定軟體的語言</string>
 
   <string name="auto">跟隨系統</string>
-  <string name="zh">簡體中文</string>
-  <string name="ch">繁體中文</string>
+  <string name="zh_simple">簡體中文</string>
+  <string name="zh_traditional">繁體中文</string>
   <string name="english">英文</string>
 
   <string name="bass_boost">低音增強</string>
