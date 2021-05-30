@@ -53,13 +53,15 @@ class FolderChooser(val activity: BaseActivity,
         .callback(this)
 
     var lastChoice: Choice? = null
-    if (preferenceName != null && preferenceKey != null) {
-      try {
-        lastChoice = Gson().fromJson(
-            SPUtil.getValue(activity, preferenceName, preferenceKey, ""),
-            Choice::class.java
-        )
-      } catch (throwable: Throwable) {
+    preferenceName?.let { preferenceName ->
+      preferenceKey?.let { preferenceKey ->
+        try {
+          lastChoice = Gson().fromJson(
+              SPUtil.getValue(activity, preferenceName, preferenceKey, ""),
+              Choice::class.java
+          )
+        } catch (throwable: Throwable) {
+        }
       }
     }
 
