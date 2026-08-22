@@ -291,6 +291,10 @@ dependencies {
 
     implementation(libs.androidx.profileinstaller)
     "baselineProfile"(project(":baselineprofile"))
+
+//    implementation("com.github.dyferiohu:jaudiotagger-android:2.2.11")
+//    implementation("org.jaudiotagger:jaudiotagger-android:2.2.6")  // 该坐标不存在于任何配置仓库，已注释；使用 third-party 源码编译
+
 }
 
 // 上传mapping文件
