@@ -8,7 +8,7 @@
   <string name="tab_playlist">清單</string>
   <string name="tab_folder">資料夾</string>
   <string name="tab_genre">流派</string>
-  <string name="tab_remote">遠程</string>
+  <string name="tab_remote">音樂來源</string>
 
   <string name="drawer_song">音樂庫</string>
   <string name="drawer_recently_add">最近新增</string>
@@ -136,6 +136,7 @@
   <string name="playing">正在播放</string>
   <string name="set_filter_size">設定排除檔案大小</string>
   <string name="delete">移除</string>
+  <string name="refresh">重新整理</string>
   <string name="ring">鈴聲</string>
   <string name="join">新增</string>
   <string name="update_error">更新失敗: %s</string>
@@ -301,6 +302,10 @@
   <string name="library">資料庫</string>
   <string name="library_category">資料庫目錄</string>
   <string name="configure_library_category">配置所有資料庫目錄是否可見</string>
+  <string name="data_source">資料來源</string>
+  <string name="data_source_desc">使用線上音樂伺服器曲庫，替代本地媒體</string>
+  <string name="data_source_local">本地音樂</string>
+  <string name="data_source_server">線上音樂伺服器</string>
   <string name="load_failed">讀取失敗</string>
   <string name="plz_choose_at_least_one_category">請至少選擇一個目錄</string>
   <string name="play">播放</string>

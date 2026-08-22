@@ -8,8 +8,12 @@
   <string name="tab_playlist">Playlists</string>
   <string name="tab_folder">Folders</string>
   <string name="tab_genre">Genres</string>
-  <string name="tab_remote">Remote</string>
+  <string name="tab_remote">音乐来源</string>
   <string name="tab_smb">SMB</string>
+  <string name="tab_server">我的音乐服务器</string>
+  <string name="server_hint_url">服务器地址（如 192.168.0.101:8080）</string>
+  <string name="server_no_songs">服务器上没有歌曲</string>
+  <string name="server_login_failed">服务器登录失败</string>
 
   <string name="drawer_song">Song Library</string>
   <string name="drawer_recently_add">Recently Added</string>
@@ -139,6 +143,7 @@
   <string name="playing">Now playing</string>
   <string name="set_filter_size">Exclude small duration files</string>
   <string name="delete">Remove</string>
+  <string name="refresh">Refresh</string>
   <string name="ring">Ringtone</string>
   <string name="join">Add</string>
   <string name="update_error">Failed to update: %s</string>
@@ -304,6 +309,10 @@
   <string name="library">Library</string>
   <string name="library_category">Library categories</string>
   <string name="configure_library_category">Show/Hide library categories</string>
+  <string name="data_source">Data source</string>
+  <string name="data_source_desc">Use online music server library instead of local media</string>
+  <string name="data_source_local">Local media</string>
+  <string name="data_source_server">Online music server</string>
   <string name="load_failed">Load failed</string>
   <string name="plz_choose_at_least_one_category">Please select at least one category</string>
   <string name="play">Play</string>

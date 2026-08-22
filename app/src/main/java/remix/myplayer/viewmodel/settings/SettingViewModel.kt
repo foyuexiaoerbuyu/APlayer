@@ -68,6 +68,15 @@ class SettingViewModel @Inject constructor(
   private val _libraryConfig = MutableStateFlow(Library.default)
   val libraryConfig = _libraryConfig.asStateFlow()
 
+  private val _dataSourceMode = MutableStateFlow(settingPrefs.dataSourceMode)
+  val dataSourceMode = _dataSourceMode.asStateFlow()
+
+  fun setDataSourceMode(mode: Int) {
+    if (_dataSourceMode.value == mode) return
+    settingPrefs.dataSourceMode = mode
+    _dataSourceMode.value = mode
+  }
+
   // 设置状态
   private val _settingsState = MutableStateFlow(loadState())
   val settingsState = _settingsState.asStateFlow()

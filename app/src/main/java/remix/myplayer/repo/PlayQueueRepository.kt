@@ -76,6 +76,7 @@ class PlayQueueRepoImpl @Inject constructor(
       if (song is Song.Remote) {
         account = song.account
         pwd = song.pwd
+        token = song.token
       }
     }
   }
@@ -118,8 +119,12 @@ class PlayQueueRepoImpl @Inject constructor(
       val remoteSong = Song.Remote(
         queue.title,
         queue.data,
+        0L,
+        0L,
         queue.account ?: "",
-        queue.pwd ?: ""
+        queue.pwd ?: "",
+        queue.token,
+        null
       )
       if (remoteSong.valid()) {
         songs.add(remoteSong)

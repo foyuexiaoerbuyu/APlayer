@@ -61,6 +61,7 @@ import remix.myplayer.ui.widget.app.MultiSelectBar
 import remix.myplayer.ui.widget.app.ViewPager
 import remix.myplayer.viewmodel.libraryViewModel
 import remix.myplayer.viewmodel.mainViewModel
+import remix.myplayer.viewmodel.serverViewModel
 import remix.myplayer.viewmodel.settingViewModel
 import remix.myplayer.viewmodel.smbViewModel
 import remix.myplayer.viewmodel.webDavViewModel
@@ -141,6 +142,7 @@ fun HomeScreen() {
 
         val webDavVM = webDavViewModel
         val smbVM = smbViewModel
+        val serverVM = serverViewModel
         Column {
           if (showAddRemoteMenu) {
             DropdownMenu(
@@ -166,6 +168,18 @@ fun HomeScreen() {
                   smbVM.showAddSmbDialog()
                 }
               }
+              DropdownMenuItem(
+                text = {
+                  Text(
+                    stringResource(R.string.tab_server),
+                    color = LocalTheme.current.textPrimary
+                  )
+                },
+                onClick = {
+                  showAddRemoteMenu = false
+                  serverVM.showAddServerDialog()
+                }
+              )
             }
           }
 

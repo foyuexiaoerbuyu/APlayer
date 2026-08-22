@@ -13,3 +13,23 @@
 /.vercel
 /.kotlin
 *.txt
+/buildlogs/build2.log
+/buildlogs/build3.log
+/buildlogs/build4.log
+/buildlogs/build5.log
+/buildlogs/build6.log
+/buildlogs/build7.log
+/buildlogs/build8.log
+/buildlogs/build9.log
+/buildlogs/clean.log
+/buildlogs/gradle_build.log
+/buildlogs/ksp_full.log
+/buildlogs/kt2.log
+/buildlogs/kt3.log
+/buildlogs/kt_compile.log
+
+# ===== 签名与构建敏感文件 =====
+/releaseKey/
+/apk-build.log
+*.jks
+*.keystore

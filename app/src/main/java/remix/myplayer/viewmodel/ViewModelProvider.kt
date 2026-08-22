@@ -28,6 +28,9 @@ val LocalWebDavViewModel = compositionLocalOf<WebDavViewModel> {
 val LocalSmbViewModel = compositionLocalOf<SmbViewModel> {
   error("SmbViewModel not provided")
 }
+val LocalServerViewModel = compositionLocalOf<ServerViewModel> {
+  error("ServerViewModel not provided")
+}
 val LocalPlaybackViewModel = compositionLocalOf<PlaybackViewModel> {
   error("PlaybackViewModel not provided")
 }
@@ -43,6 +46,7 @@ fun ProvideViewModels(content: @Composable () -> Unit) {
     LocalTimerViewModel provides activityViewModel(),
     LocalWebDavViewModel provides activityViewModel(),
     LocalSmbViewModel provides activityViewModel(),
+    LocalServerViewModel provides activityViewModel(),
     LocalPlaybackViewModel provides activityViewModel()
   ) {
     content()
@@ -88,3 +92,8 @@ val smbViewModel: SmbViewModel
   @Composable
   @ReadOnlyComposable
   get() = LocalSmbViewModel.current
+
+val serverViewModel: ServerViewModel
+  @Composable
+  @ReadOnlyComposable
+  get() = LocalServerViewModel.current
