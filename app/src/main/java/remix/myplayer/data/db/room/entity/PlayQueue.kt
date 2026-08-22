@@ -20,6 +20,7 @@ data class PlayQueue(
 
   var account: String? = null
   var pwd: String? = null
+  var token: String? = null
 
 
   companion object {

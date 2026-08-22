@@ -16,6 +16,7 @@ import remix.myplayer.request.netease.NetEaseClient
 import remix.myplayer.request.network.GithubApi
 import remix.myplayer.request.network.LastFMApi
 import remix.myplayer.request.network.OkHttpHelper
+import remix.myplayer.request.network.ServerApi
 import remix.myplayer.request.qq.QQClient
 import retrofit2.Retrofit
 import javax.inject.Singleton
@@ -70,6 +71,17 @@ object NetworkModule {
     okHttpClient: OkHttpClient
   ): QQClient {
     return QQClient(context, okHttpClient)
+  }
+
+  @Provides
+  @Singleton
+  fun provideServerApi(okHttpClient: OkHttpClient): ServerApi {
+    return Retrofit.Builder()
+      .baseUrl("http://127.0.0.1/")
+      .client(okHttpClient)
+      .addConverterFactory(json.asConverterFactory(jsonContentType))
+      .build()
+      .create(ServerApi::class.java)
   }
 
   @Provides

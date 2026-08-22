@@ -43,6 +43,9 @@ object PrefKeys {
     /** 过滤大小 */
     const val SCAN_SIZE = "scan_size"
 
+    /** 数据源模式：0=本地 1=在线音乐服务器 */
+    const val DATA_SOURCE_MODE = "data_source_mode"
+
     /** 强制按拼音排序 */
     const val FORCE_SORT = "force_sort"
 

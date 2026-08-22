@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,8 +23,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import remix.myplayer.R
+import remix.myplayer.data.db.room.entity.ServerConfig
 import remix.myplayer.data.db.room.entity.Smb
 import remix.myplayer.data.db.room.entity.WebDav
+import remix.myplayer.data.prefs.SettingPrefs
+import remix.myplayer.ui.dialog.AddServerDialog
 import remix.myplayer.ui.dialog.AddSmbDialog
 import remix.myplayer.ui.dialog.AddWebDavDialog
 import remix.myplayer.ui.nav.LocalNavController
@@ -34,8 +38,11 @@ import remix.myplayer.ui.widget.common.PopupButton
 import remix.myplayer.ui.widget.common.TextPrimary
 import remix.myplayer.ui.widget.common.TextSecondary
 import remix.myplayer.util.ext.clickWithRipple
+import remix.myplayer.viewmodel.ServerViewModel
 import remix.myplayer.viewmodel.SmbViewModel
 import remix.myplayer.viewmodel.WebDavViewModel
+import remix.myplayer.viewmodel.libraryViewModel
+import remix.myplayer.viewmodel.serverViewModel
 import remix.myplayer.viewmodel.smbViewModel
 import remix.myplayer.viewmodel.webDavViewModel
 
@@ -45,10 +52,50 @@ fun RemoteScreen() {
 
   val webDavVM = webDavViewModel
   val smbVM = smbViewModel
+  val serverVM = serverViewModel
+  val libraryVM = libraryViewModel
+  SideEffect {
+    // 登录/保存成功或删除服务器后自动刷新在线数据（仅在线模式）
+    serverVM.onMediaRefresh = {
+      if (libraryVM.settingPrefs.dataSourceMode == SettingPrefs.DATA_SOURCE_SERVER) {
+        libraryVM.fetchMedia(clear = true)
+      }
+    }
+  }
   val webdavList by webDavVM.webDavList.collectAsStateWithLifecycle()
   val smbList by smbVM.smbList.collectAsStateWithLifecycle()
+  val serverList by serverVM.serverList.collectAsStateWithLifecycle()
 
   LazyColumn(modifier = Modifier.fillMaxSize()) {
+    if (serverList.isNotEmpty()) {
+      item {
+        ListHeader(R.string.tab_server)
+      }
+      items(serverList, key = { "server_${it.id}" }) { server ->
+        ServerItem(server) { res ->
+          when (res) {
+            R.string.connect -> {
+              nav.navigate(server)
+            }
+
+            R.string.edit -> {
+              serverVM.showAddServerDialog(server)
+            }
+
+            R.string.delete -> {
+              serverVM.deleteServer(server)
+            }
+
+            R.string.refresh -> {
+              if (libraryVM.settingPrefs.dataSourceMode == SettingPrefs.DATA_SOURCE_SERVER) {
+                libraryVM.fetchMedia(clear = true)
+              }
+            }
+          }
+        }
+      }
+    }
+
     if (webdavList.isNotEmpty()) {
       item {
         ListHeader(R.string.webdav)
@@ -96,7 +143,7 @@ fun RemoteScreen() {
     }
   }
 
-  Dialogs(webDavVM, smbVM)
+  Dialogs(webDavVM, smbVM, serverVM)
 }
 
 @Composable
@@ -109,8 +156,45 @@ private fun ListHeader(p: Int) {
 }
 
 @Composable
-private fun Dialogs(webDavVM: WebDavViewModel, smbVM: SmbViewModel) {
+private fun Dialogs(webDavVM: WebDavViewModel, smbVM: SmbViewModel, serverVM: ServerViewModel) {
   val context = LocalContext.current
+
+  AddServerDialog { alias, account, pwd, server, editServer ->
+    if (alias.isEmpty()) {
+      MessageNotifier.show(R.string.can_t_be_empty, context.getString(R.string.alias))
+      return@AddServerDialog
+    }
+
+    if (account.isEmpty()) {
+      MessageNotifier.show(R.string.can_t_be_empty, context.getString(R.string.account))
+      return@AddServerDialog
+    }
+
+    if (pwd.isEmpty()) {
+      MessageNotifier.show(R.string.can_t_be_empty, context.getString(R.string.pwd))
+      return@AddServerDialog
+    }
+
+    if (server.isEmpty()) {
+      MessageNotifier.show(
+        R.string.can_t_be_empty,
+        context.getString(R.string.server_hint_url)
+      )
+      return@AddServerDialog
+    }
+
+    if (editServer != null) {
+      val updated = editServer.copy(
+        alias = alias,
+        account = account,
+        pwd = pwd,
+        server = server,
+      ).also { it.id = editServer.id }
+      serverVM.insertOrReplaceServer(updated)
+    } else {
+      serverVM.insertOrReplaceServer(ServerConfig(alias, account, pwd, server.removeSuffix("/")))
+    }
+  }
 
   AddWebDavDialog { alias, account, pwd, server, editWebDav ->
     if (alias.isEmpty()) {
@@ -287,6 +371,47 @@ private fun SmbItem(smb: Smb, onMenuClick: (Int) -> Unit) {
     PopupButton(
       listOf(R.string.connect, R.string.edit, R.string.delete),
       contentDescription = "SmbPopupButton",
+      onMenuClick = onMenuClick
+    )
+  }
+}
+
+@Composable
+private fun ServerItem(server: ServerConfig, onMenuClick: (Int) -> Unit) {
+  val theme = LocalTheme.current
+  val nav = LocalNavController.current
+
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .height(56.dp)
+      .clickWithRipple(false) {
+        nav.navigate(server)
+      }
+      .background(theme.mainBackground),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Icon(
+      modifier = Modifier.padding(start = 12.dp),
+      painter = painterResource(R.drawable.icon_webdav),
+      contentDescription = "IconServerItem",
+      tint = theme.icon()
+    )
+
+    Column(
+      modifier = Modifier
+        .padding(horizontal = 12.dp)
+        .weight(1f),
+      horizontalAlignment = Alignment.Start, verticalArrangement = Arrangement.Center
+    ) {
+      TextPrimary(server.alias)
+      Spacer(Modifier.height(4.dp))
+      TextSecondary(server.server)
+    }
+
+    PopupButton(
+      listOf(R.string.connect, R.string.edit, R.string.delete, R.string.refresh),
+      contentDescription = "ServerPopupButton",
       onMenuClick = onMenuClick
     )
   }

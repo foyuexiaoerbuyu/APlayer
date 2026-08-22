@@ -8,7 +8,7 @@
   <string name="tab_playlist">列表</string>
   <string name="tab_folder">文件夹</string>
   <string name="tab_genre">流派</string>
-  <string name="tab_remote">远程</string>
+  <string name="tab_remote">音乐来源</string>
 
   <string name="drawer_song">歌曲库</string>
   <string name="drawer_recently_add">最近添加</string>
@@ -136,6 +136,7 @@
   <string name="playing">正在播放</string>
   <string name="set_filter_size">设置过滤文件大小</string>
   <string name="delete">移除</string>
+  <string name="refresh">刷新</string>
   <string name="ring">铃声</string>
   <string name="join">加入</string>
   <string name="update_error">更新失败: %s</string>
@@ -301,6 +302,10 @@
   <string name="library">曲库</string>
   <string name="library_category">曲库目录</string>
   <string name="configure_library_category">配置所有曲库目录是否可见</string>
+  <string name="data_source">数据源</string>
+  <string name="data_source_desc">使用在线音乐服务器曲库，替代本地媒体</string>
+  <string name="data_source_local">本地音乐</string>
+  <string name="data_source_server">在线音乐服务器</string>
   <string name="load_failed">读取失败</string>
   <string name="plz_choose_at_least_one_category">请至少选择一个目录</string>
   <string name="play">播放</string>

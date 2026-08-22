@@ -20,6 +20,7 @@ import remix.myplayer.repo.PlayQueueRepoImpl
 import remix.myplayer.repo.PlayQueueRepository
 import remix.myplayer.repo.SmbRepoImpl
 import remix.myplayer.repo.SmbRepository
+import remix.myplayer.repo.ServerConfigRepository
 import remix.myplayer.repo.SongRepoImpl
 import remix.myplayer.repo.SongRepository
 import remix.myplayer.repo.WebDavRepository
@@ -67,4 +68,8 @@ abstract class RepositoryModule {
   @Singleton
   @Binds
   abstract fun bindSmbRepo(repo: SmbRepoImpl): SmbRepository
+
+  @Singleton
+  @Binds
+  abstract fun bindServerConfigRepo(repo: remix.myplayer.repo.ServerConfigRepoImpl): ServerConfigRepository
 }

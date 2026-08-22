@@ -34,6 +34,9 @@ class SettingPrefs @Inject constructor(
 
   var libraryJson by PrefsDelegate(sp, PrefKeys.Setting.LIBRARY, "")
 
+  /** 数据源模式：0=本地媒体库 1=在线音乐服务器 */
+  var dataSourceMode by PrefsDelegate(sp, PrefKeys.Setting.DATA_SOURCE_MODE, DATA_SOURCE_LOCAL)
+
   var scanSize by PrefsDelegate(sp, PrefKeys.Setting.SCAN_SIZE, MB)
 
   var songSortOrder by PrefsDelegate(sp, PrefKeys.Setting.SONG_SORT_ORDER, SortOrder.SONG_A_Z)
@@ -239,6 +242,10 @@ class SettingPrefs @Inject constructor(
 
     const val LIST_MODE = 0
     const val GRID_MODE = 1
+
+    // 数据源模式
+    const val DATA_SOURCE_LOCAL = 0
+    const val DATA_SOURCE_SERVER = 1
 
     const val UI_FONT_SCALE_DEFAULT = 1.0f
     const val UI_FONT_SCALE_MIN = 0.85f

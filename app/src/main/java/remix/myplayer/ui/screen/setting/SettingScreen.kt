@@ -38,6 +38,7 @@ import remix.myplayer.ui.screen.setting.logic.common.UiFontScaleLogic
 import remix.myplayer.ui.screen.setting.logic.cover.AutoDownloadLogic
 import remix.myplayer.ui.screen.setting.logic.cover.DownloadSourceLogic
 import remix.myplayer.ui.screen.setting.logic.cover.IgnoreMediaStoreLogic
+import remix.myplayer.ui.screen.setting.logic.library.DataSourceLogic
 import remix.myplayer.ui.screen.setting.logic.library.LibraryLogic
 import remix.myplayer.ui.screen.setting.logic.lyric.DesktopLyricLogic
 import remix.myplayer.ui.screen.setting.logic.lyric.LyricPriorityLogic
@@ -236,6 +237,8 @@ private fun ColorPreferenceItems() {
 
 @Composable
 private fun LibraryPreferenceItems() {
+  DataSourceLogic()
+
   LibraryLogic()
 }
 

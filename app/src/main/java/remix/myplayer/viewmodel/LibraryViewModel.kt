@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -36,6 +37,8 @@ import remix.myplayer.repo.FolderRepository
 import remix.myplayer.repo.GenreRepository
 import remix.myplayer.repo.HistoryRepository
 import remix.myplayer.repo.PlayListRepository
+import remix.myplayer.repo.ServerConfigRepository
+import remix.myplayer.repo.ServerRepository
 import remix.myplayer.repo.SongRepository
 import remix.myplayer.repo.usecase.ExportPlayListUseCase
 import remix.myplayer.repo.usecase.PlayFromUriUseCase
@@ -60,6 +63,8 @@ class LibraryViewModel @Inject constructor(
   private val folderRepo: FolderRepository,
   private val uriFetcher: UriFetcher,
   private val historyRepo: HistoryRepository,
+  private val serverConfigRepository: ServerConfigRepository,
+  private val serverRepository: ServerRepository,
   val settingPrefs: SettingPrefs,
   private val exportPlayListUseCase: ExportPlayListUseCase,
   private val playFromUriUseCase: PlayFromUriUseCase
@@ -153,6 +158,27 @@ class LibraryViewModel @Inject constructor(
 
   suspend fun loadSongsByModels(models: List<APlayerModel>) = songRepo.getSongsByModels(models)
 
+  /**
+   * 详情页取数：在线模式按模型类型走服务器过滤接口（不下载本地），
+   * 本地模式保持 MediaStore 查询。
+   */
+  suspend fun loadDetailSongs(model: APlayerModel): List<Song> {
+    if (settingPrefs.dataSourceMode != SettingPrefs.DATA_SOURCE_SERVER) {
+      return songRepo.getSongsByModels(listOf(model))
+    }
+    val config = runCatching { serverConfigRepository.allServers().first().firstOrNull() }.getOrNull()
+      ?: return emptyList()
+    return withContext(Dispatchers.IO) {
+      when (model) {
+        is Album -> serverRepository.fetchSongs(config, albumId = model.albumID)
+        is Artist -> serverRepository.fetchSongs(config, artistId = model.artistID)
+        is Genre -> serverRepository.fetchSongs(config, genre = model.genre)
+        is Folder -> serverRepository.fetchSongsInFolder(config, model.path)
+        else -> emptyList()
+      }
+    }
+  }
+
   fun loadSong(selection: String?, selectionValues: Array<String?>?, sortOrder: String? = null) =
     songRepo.getSongs(selection, selectionValues, sortOrder)
 
@@ -226,13 +252,41 @@ class LibraryViewModel @Inject constructor(
         Glide.get(context).clearMemory()
       }
 
-      _songs.value = async(Dispatchers.IO) { songRepo.allSongs() }.await()
-      _albums.value = async(Dispatchers.IO) { albumRepo.allAlbums() }.await()
-      _artists.value = async(Dispatchers.IO) { artistRepo.allArtists() }.await()
-      _genres.value = async(Dispatchers.IO) { genreRepo.allGenres() }.await()
-      _folders.value = async(Dispatchers.IO) { folderRepo.allFolders() }.await()
-      Timber.v("songCount: ${_songs.value.size} albumCount: ${_albums.value.size} artistCount: ${_artists.value.size} genreCount: ${_genres.value.size} folderCount: ${_folders.value.size}")
+      if (settingPrefs.dataSourceMode == SettingPrefs.DATA_SOURCE_SERVER) {
+        fetchServerMedia()
+      } else {
+        fetchLocalMedia()
+      }
     }
+  }
+
+  private suspend fun fetchLocalMedia() {
+    _songs.value = withContext(Dispatchers.IO) { songRepo.allSongs() }
+    _albums.value = withContext(Dispatchers.IO) { albumRepo.allAlbums() }
+    _artists.value = withContext(Dispatchers.IO) { artistRepo.allArtists() }
+    _genres.value = withContext(Dispatchers.IO) { genreRepo.allGenres() }
+    _folders.value = withContext(Dispatchers.IO) { folderRepo.allFolders() }
+    Timber.v("songCount: ${_songs.value.size} albumCount: ${_albums.value.size} artistCount: ${_artists.value.size} genreCount: ${_genres.value.size} folderCount: ${_folders.value.size}")
+  }
+
+  /** 在线模式：使用服务器上第一个 ServerConfig 拉取歌曲/专辑/歌手/流派。 */
+  private suspend fun fetchServerMedia() {
+    val config = runCatching { serverConfigRepository.allServers().first().firstOrNull() }.getOrNull()
+    if (config == null) {
+      _songs.value = emptyList()
+      _albums.value = emptyList()
+      _artists.value = emptyList()
+      _genres.value = emptyList()
+      _folders.value = emptyList()
+      Timber.w("server mode but no server config")
+      return
+    }
+    _songs.value = withContext(Dispatchers.IO) { serverRepository.fetchSongs(config) }
+    _albums.value = withContext(Dispatchers.IO) { serverRepository.fetchAlbums(config) }
+    _artists.value = withContext(Dispatchers.IO) { serverRepository.fetchArtists(config) }
+    _genres.value = withContext(Dispatchers.IO) { serverRepository.fetchGenres(config) }
+    _folders.value = withContext(Dispatchers.IO) { serverRepository.fetchFolders(config) }
+    Timber.v("server songCount: ${_songs.value.size} albumCount: ${_albums.value.size} artistCount: ${_artists.value.size} genreCount: ${_genres.value.size} folderCount: ${_folders.value.size}")
   }
 
   fun clearHistory() = viewModelScope.launch {

@@ -34,6 +34,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import remix.myplayer.data.db.room.entity.PlayList
+import remix.myplayer.data.db.room.entity.ServerConfig
 import remix.myplayer.data.db.room.entity.Smb
 import remix.myplayer.data.db.room.entity.WebDav
 import remix.myplayer.data.model.audio.APlayerModel
@@ -59,6 +60,7 @@ import remix.myplayer.ui.screen.home.HomeScreen
 import remix.myplayer.ui.screen.setting.SettingDetailScreen
 import remix.myplayer.ui.screen.setting.SettingScreen
 import remix.myplayer.ui.screen.smb.SmbDetailScreen
+import remix.myplayer.ui.screen.server.ServerDetailScreen
 import remix.myplayer.ui.screen.webdav.WebDavDetailScreen
 import remix.myplayer.util.Constants
 import remix.myplayer.viewmodel.libraryViewModel
@@ -184,6 +186,16 @@ fun AppNav() {
             ) {
               val smb = it.toRoute<Smb>()
               SmbDetailScreen(smb)
+            }
+
+            composable<ServerConfig>(
+              enterTransition = enterTransition(),
+              exitTransition = exitTransition(),
+              popEnterTransition = popEnterTransition(),
+              popExitTransition = popExitTransition(),
+            ) {
+              val serverConfig = it.toRoute<ServerConfig>()
+              ServerDetailScreen(serverConfig)
             }
 
             normalAnimatedScreen(

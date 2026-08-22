@@ -33,7 +33,10 @@ height="80">](https://apt.izzysoft.de/packages/remix.myplayer)
 | <img src="screenshoots/9-land-home.png" width="220" alt="Landscape Home" /> | <img src="screenshoots/10-land-playing.png" width="220" alt="Landscape Playing" /> | <img src="screenshoots/11-land-desktop-lyric-widget.png" width="220" alt="Landscape Desktop Lyric & Widget" /> |
 | Landscape Home | Landscape Playing | Landscape Desktop Lyric & Widget |
 
+![web1](.\screenshoots\web1.png)
+
 ## Feature
+
 - Configurable tabs: songs, artists, albums, folders, playlists, remote (WebDAV)
 - Local and online lyrics: embedded/local/online, word-by-word, searchable with priority
 - Floating lyrics and home screen widgets

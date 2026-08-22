@@ -164,7 +164,9 @@ sealed class Song(
           track ?: this.track,
           dateModified,
           account,
-          pwd
+          pwd,
+          token,
+          coverUrl
         )
       }
 
@@ -261,14 +263,22 @@ sealed class Song(
     track: String?,
     dateModified: Long,
     val account: String,
-    val pwd: String
+    val pwd: String,
+    val token: String? = null,
+    val coverUrl: String? = null
   ) : Song(
     -abs(data.hashCode().toLong()), title, title, album, 0L, artist, 0L, duration, data, size, year, genre, track, dateModified
   ) {
     val headers by lazy {
-      mapOf(
-        "Authorization" to Credentials.basic(account, pwd)
-      )
+      if (!token.isNullOrEmpty()) {
+        mapOf(
+          "Authorization" to "Bearer $token"
+        )
+      } else {
+        mapOf(
+          "Authorization" to Credentials.basic(account, pwd)
+        )
+      }
     }
     var bitRate: String = ""
     var sampleRate: String = ""
@@ -282,7 +292,16 @@ sealed class Song(
 
     constructor(title: String, data: String, account: String, pwd: String): this(title, data, 0L, 0L, account, pwd)
 
-    constructor(title: String, data: String, size: Long, dateModified: Long, account: String, pwd: String) : this(
+    constructor(
+      title: String,
+      data: String,
+      size: Long,
+      dateModified: Long,
+      account: String,
+      pwd: String,
+      token: String? = null,
+      coverUrl: String? = null
+    ) : this(
       title,
       "",
       "",
@@ -294,7 +313,9 @@ sealed class Song(
       "",
       dateModified,
       account,
-      pwd
+      pwd,
+      token,
+      coverUrl
     )
 
 //    override fun equals(other: Any?): Boolean {

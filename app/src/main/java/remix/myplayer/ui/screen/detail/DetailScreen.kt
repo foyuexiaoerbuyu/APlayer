@@ -186,7 +186,7 @@ fun DetailScreen(model: APlayerModel) {
 
   LaunchedEffect(refreshKey) {
     val result = withContext(Dispatchers.IO) {
-      libraryVM.loadSongsByModels(listOf(model))
+      libraryVM.loadDetailSongs(model)
     }
     songs.clear()
     songs.addAll(result)
