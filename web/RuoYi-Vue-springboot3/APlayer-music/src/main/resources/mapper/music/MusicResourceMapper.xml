@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.music.mapper.MusicResourceMapper">
+
+    <resultMap type="MusicResource" id="MusicResourceResult">
+        <id     property="id"           column="id"            />
+        <result property="songId"       column="song_id"       />
+        <result property="resourceType" column="resource_type" />
+        <result property="format"       column="format"        />
+        <result property="codec"        column="codec"         />
+        <result property="bitrate"      column="bitrate"       />
+        <result property="sampleRate"   column="sample_rate"   />
+        <result property="channels"     column="channels"      />
+        <result property="fileSize"     column="file_size"     />
+        <result property="filePath"     column="file_path"     />
+        <result property="fileHash"     column="file_hash"     />
+        <result property="duration"     column="duration"      />
+        <result property="createBy"     column="create_by"     />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"     />
+        <result property="updateTime"   column="update_time"   />
+        <result property="remark"       column="remark"        />
+    </resultMap>
+
+    <sql id="selectMusicResourceVo">
+        select id, song_id, resource_type, format, codec, bitrate, sample_rate,
+               channels, file_size, file_path, file_hash, duration,
+               create_by, create_time, update_by, update_time, remark
+        from music_resource
+    </sql>
+
+    <select id="selectMusicResourceList" parameterType="MusicResource" resultMap="MusicResourceResult">
+        <include refid="selectMusicResourceVo"/>
+        <where>
+            <if test="songId != null">AND song_id = #{songId}</if>
+            <if test="resourceType != null and resourceType != ''">AND resource_type = #{resourceType}</if>
+        </where>
+        order by id
+    </select>
+
+    <select id="selectMusicResourceById" parameterType="Long" resultMap="MusicResourceResult">
+        <include refid="selectMusicResourceVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectAudioResourceBySongId" parameterType="Long" resultMap="MusicResourceResult">
+        <include refid="selectMusicResourceVo"/>
+        where song_id = #{songId} and resource_type = 'AUDIO' limit 1
+    </select>
+
+    <insert id="insertMusicResource" parameterType="MusicResource" useGeneratedKeys="true" keyProperty="id">
+        insert into music_resource (
+            <if test="songId != null">song_id,</if>
+            <if test="resourceType != null and resourceType != ''">resource_type,</if>
+            <if test="format != null and format != ''">format,</if>
+            <if test="codec != null and codec != ''">codec,</if>
+            <if test="bitrate != null">bitrate,</if>
+            <if test="sampleRate != null">sample_rate,</if>
+            <if test="channels != null">channels,</if>
+            <if test="fileSize != null">file_size,</if>
+            <if test="filePath != null and filePath != ''">file_path,</if>
+            <if test="fileHash != null and fileHash != ''">file_hash,</if>
+            <if test="duration != null">duration,</if>
+            create_time
+        ) values (
+            <if test="songId != null">#{songId},</if>
+            <if test="resourceType != null and resourceType != ''">#{resourceType},</if>
+            <if test="format != null and format != ''">#{format},</if>
+            <if test="codec != null and codec != ''">#{codec},</if>
+            <if test="bitrate != null">#{bitrate},</if>
+            <if test="sampleRate != null">#{sampleRate},</if>
+            <if test="channels != null">#{channels},</if>
+            <if test="fileSize != null">#{fileSize},</if>
+            <if test="filePath != null and filePath != ''">#{filePath},</if>
+            <if test="fileHash != null and fileHash != ''">#{fileHash},</if>
+            <if test="duration != null">#{duration},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateMusicResource" parameterType="MusicResource">
+        update music_resource
+        <set>
+            <if test="songId != null">song_id = #{songId},</if>
+            <if test="resourceType != null and resourceType != ''">resource_type = #{resourceType},</if>
+            <if test="format != null and format != ''">format = #{format},</if>
+            <if test="codec != null and codec != ''">codec = #{codec},</if>
+            <if test="bitrate != null">bitrate = #{bitrate},</if>
+            <if test="sampleRate != null">sample_rate = #{sampleRate},</if>
+            <if test="channels != null">channels = #{channels},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="filePath != null and filePath != ''">file_path = #{filePath},</if>
+            <if test="fileHash != null and fileHash != ''">file_hash = #{fileHash},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMusicResourceById" parameterType="Long">
+        delete from music_resource where id = #{id}
+    </delete>
+
+    <delete id="deleteMusicResourceBySongId" parameterType="Long">
+        delete from music_resource where song_id = #{songId}
+    </delete>
+
+    <delete id="deleteMusicResourceByIds" parameterType="Long">
+        delete from music_resource where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

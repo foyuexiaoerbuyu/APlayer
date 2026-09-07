@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.music.mapper.MusicSongMapper">
+
+    <resultMap type="MusicSong" id="MusicSongResult">
+        <id     property="id"          column="id"           />
+        <result property="title"       column="title"        />
+        <result property="artistId"    column="artist_id"    />
+        <result property="artistName"  column="artist_name"  />
+        <result property="albumId"     column="album_id"     />
+        <result property="albumName"   column="album_name"   />
+        <result property="genre"       column="genre"        />
+        <result property="coverPath"   column="cover_path"   />
+        <result property="duration"    column="duration"     />
+        <result property="status"      column="status"       />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"  column="create_time"  />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"  column="update_time"  />
+        <result property="remark"      column="remark"       />
+        <association property="resource" javaType="MusicResource" resultMap="MusicResourceResult"/>
+    </resultMap>
+
+    <resultMap type="MusicResource" id="MusicResourceResult">
+        <id     property="id"            column="r_id"           />
+        <result property="songId"        column="r_song_id"      />
+        <result property="resourceType"  column="r_resource_type"/>
+        <result property="format"        column="r_format"       />
+        <result property="codec"         column="r_codec"        />
+        <result property="bitrate"       column="r_bitrate"      />
+        <result property="sampleRate"    column="r_sample_rate"  />
+        <result property="channels"      column="r_channels"     />
+        <result property="fileSize"      column="r_file_size"    />
+        <result property="filePath"      column="r_file_path"    />
+        <result property="fileHash"      column="r_file_hash"    />
+        <result property="duration"      column="r_duration"     />
+    </resultMap>
+
+    <sql id="selectMusicSongVo">
+        select s.id, s.title, s.artist_id, s.artist_name, s.album_id, s.album_name,
+               s.genre, s.cover_path, s.duration, s.status, s.create_by, s.create_time,
+               s.update_by, s.update_time, s.remark,
+               r.id as r_id, r.song_id as r_song_id, r.resource_type as r_resource_type,
+               r.format as r_format, r.codec as r_codec, r.bitrate as r_bitrate,
+               r.sample_rate as r_sample_rate, r.channels as r_channels,
+               r.file_size as r_file_size, r.file_path as r_file_path,
+               r.file_hash as r_file_hash, r.duration as r_duration
+        from music_song s
+        left join music_resource r on r.song_id = s.id and r.resource_type = 'AUDIO'
+    </sql>
+
+    <select id="selectMusicSongList" parameterType="MusicSong" resultMap="MusicSongResult">
+        <include refid="selectMusicSongVo"/>
+        <where>
+            <if test="title != null and title != ''">
+                AND s.title like concat('%', #{title}, '%')
+            </if>
+            <if test="artistName != null and artistName != ''">
+                AND s.artist_name like concat('%', #{artistName}, '%')
+            </if>
+            <if test="albumName != null and albumName != ''">
+                AND s.album_name like concat('%', #{albumName}, '%')
+            </if>
+            <if test="albumId != null">
+                AND s.album_id = #{albumId}
+            </if>
+            <if test="artistId != null">
+                AND s.artist_id = #{artistId}
+            </if>
+            <if test="genre != null and genre != ''">
+                AND s.genre = #{genre}
+            </if>
+            <if test="status != null and status != ''">
+                AND s.status = #{status}
+            </if>
+        </where>
+        order by s.id
+    </select>
+
+    <select id="selectGenreList" resultType="MusicSong">
+        select max(id) as id, genre, count(*) as genreCount
+        from music_song
+        where genre is not null and genre != ''
+        group by genre
+        order by genre
+    </select>
+
+    <select id="selectMusicSongById" parameterType="Long" resultMap="MusicSongResult">
+        <include refid="selectMusicSongVo"/>
+        where s.id = #{id}
+    </select>
+
+    <insert id="insertMusicSong" parameterType="MusicSong" useGeneratedKeys="true" keyProperty="id">
+        insert into music_song (
+            <if test="title != null and title != ''">title,</if>
+            <if test="artistId != null">artist_id,</if>
+            <if test="artistName != null and artistName != ''">artist_name,</if>
+            <if test="albumId != null">album_id,</if>
+            <if test="albumName != null and albumName != ''">album_name,</if>
+            <if test="genre != null and genre != ''">genre,</if>
+            <if test="coverPath != null and coverPath != ''">cover_path,</if>
+            <if test="duration != null">duration,</if>
+            <if test="status != null and status != ''">status,</if>
+            create_time
+        ) values (
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="artistId != null">#{artistId},</if>
+            <if test="artistName != null and artistName != ''">#{artistName},</if>
+            <if test="albumId != null">#{albumId},</if>
+            <if test="albumName != null and albumName != ''">#{albumName},</if>
+            <if test="genre != null and genre != ''">#{genre},</if>
+            <if test="coverPath != null and coverPath != ''">#{coverPath},</if>
+            <if test="duration != null">#{duration},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateMusicSong" parameterType="MusicSong">
+        update music_song
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="artistId != null">artist_id = #{artistId},</if>
+            <if test="artistName != null and artistName != ''">artist_name = #{artistName},</if>
+            <if test="albumId != null">album_id = #{albumId},</if>
+            <if test="albumName != null and albumName != ''">album_name = #{albumName},</if>
+            <if test="genre != null and genre != ''">genre = #{genre},</if>
+            <if test="coverPath != null and coverPath != ''">cover_path = #{coverPath},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMusicSongById" parameterType="Long">
+        delete from music_song where id = #{id}
+    </delete>
+
+    <delete id="deleteMusicSongByIds" parameterType="Long">
+        delete from music_song where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
