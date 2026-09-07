@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.music.mapper.MusicArtistMapper">
+
+    <resultMap type="MusicArtist" id="MusicArtistResult">
+        <id     property="id"          column="id"         />
+        <result property="name"        column="name"       />
+        <result property="songCount"   column="song_count" />
+        <result property="createBy"    column="create_by"  />
+        <result property="createTime"  column="create_time"/>
+        <result property="updateBy"    column="update_by"  />
+        <result property="updateTime"  column="update_time"/>
+        <result property="remark"      column="remark"     />
+    </resultMap>
+
+    <sql id="selectMusicArtistVo">
+        select a.id, a.name, a.create_by, a.create_time, a.update_by, a.update_time, a.remark,
+               (select count(*) from music_song s where s.artist_id = a.id) as song_count
+        from music_artist a
+    </sql>
+
+    <select id="selectMusicArtistList" parameterType="MusicArtist" resultMap="MusicArtistResult">
+        <include refid="selectMusicArtistVo"/>
+        <where>
+            <if test="name != null and name != ''">
+                AND a.name like concat('%', #{name}, '%')
+            </if>
+        </where>
+        order by a.id
+    </select>
+
+    <select id="selectMusicArtistById" parameterType="Long" resultMap="MusicArtistResult">
+        <include refid="selectMusicArtistVo"/>
+        where a.id = #{id}
+    </select>
+
+    <select id="selectMusicArtistByName" parameterType="String" resultMap="MusicArtistResult">
+        <include refid="selectMusicArtistVo"/>
+        where a.name = #{name} limit 1
+    </select>
+
+    <insert id="insertMusicArtist" parameterType="MusicArtist" useGeneratedKeys="true" keyProperty="id">
+        insert into music_artist (
+            <if test="name != null and name != ''">name,</if>
+            create_time
+        ) values (
+            <if test="name != null and name != ''">#{name},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateMusicArtist" parameterType="MusicArtist">
+        update music_artist
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMusicArtistById" parameterType="Long">
+        delete from music_artist where id = #{id}
+    </delete>
+
+    <delete id="deleteMusicArtistByIds" parameterType="Long">
+        delete from music_artist where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

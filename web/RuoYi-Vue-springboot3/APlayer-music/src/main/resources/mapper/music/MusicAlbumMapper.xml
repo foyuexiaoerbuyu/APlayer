@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.music.mapper.MusicAlbumMapper">
+
+    <resultMap type="MusicAlbum" id="MusicAlbumResult">
+        <id     property="id"          column="id"          />
+        <result property="name"        column="name"        />
+        <result property="coverPath"   column="cover_path"  />
+        <result property="songCount"   column="song_count"  />
+        <result property="createBy"    column="create_by"   />
+        <result property="createTime"  column="create_time" />
+        <result property="updateBy"    column="update_by"   />
+        <result property="updateTime"  column="update_time" />
+        <result property="remark"      column="remark"      />
+    </resultMap>
+
+    <sql id="selectMusicAlbumVo">
+        select a.id, a.name, a.cover_path, a.create_by, a.create_time, a.update_by, a.update_time, a.remark,
+               (select count(*) from music_song s where s.album_id = a.id) as song_count
+        from music_album a
+    </sql>
+
+    <select id="selectMusicAlbumList" parameterType="MusicAlbum" resultMap="MusicAlbumResult">
+        <include refid="selectMusicAlbumVo"/>
+        <where>
+            <if test="name != null and name != ''">
+                AND a.name like concat('%', #{name}, '%')
+            </if>
+        </where>
+        order by a.id
+    </select>
+
+    <select id="selectMusicAlbumById" parameterType="Long" resultMap="MusicAlbumResult">
+        <include refid="selectMusicAlbumVo"/>
+        where a.id = #{id}
+    </select>
+
+    <select id="selectMusicAlbumByName" parameterType="String" resultMap="MusicAlbumResult">
+        <include refid="selectMusicAlbumVo"/>
+        where a.name = #{name} limit 1
+    </select>
+
+    <insert id="insertMusicAlbum" parameterType="MusicAlbum" useGeneratedKeys="true" keyProperty="id">
+        insert into music_album (
+            <if test="name != null and name != ''">name,</if>
+            <if test="coverPath != null and coverPath != ''">cover_path,</if>
+            create_time
+        ) values (
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="coverPath != null and coverPath != ''">#{coverPath},</if>
+            sysdate()
+        )
+    </insert>
+
+    <update id="updateMusicAlbum" parameterType="MusicAlbum">
+        update music_album
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="coverPath != null and coverPath != ''">cover_path = #{coverPath},</if>
+            update_time = sysdate()
+        </set>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteMusicAlbumById" parameterType="Long">
+        delete from music_album where id = #{id}
+    </delete>
+
+    <delete id="deleteMusicAlbumByIds" parameterType="Long">
+        delete from music_album where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
