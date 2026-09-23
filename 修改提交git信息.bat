@@ -1,4 +1,4 @@
-# è®¾ç½®æœ¬é¡¹ç›®æäº¤ç”¨æˆ·å
-git config user.name "å¼ ä¸‰"
-# è®¾ç½®æœ¬é¡¹ç›®æäº¤é‚®ç®±
-git config user.email "zhangsan@shturl."
+# ÉèÖÃ±¾ÏîÄ¿Ìá½»ÓÃ»§Ãû
+git config user.name "ÕÅÈı"
+# ÉèÖÃ±¾ÏîÄ¿Ìá½»ÓÊÏä
+git config user.email "test@test"
