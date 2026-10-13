@@ -534,6 +534,7 @@ class MusicService : BaseService(),
   private fun setUpPlayback() {
     playback = ExoPlayback(this, settingPrefs.decoderMode, audioFocusManager)
     playback.attach(this)
+    playback.speed = settingPrefs.speedValue
 
     Timber.v("setUpPlayback, audioSessionId: ${playback.audioSessionId}")
     EQHelper.updateAudioSession(this, playback.audioSessionId)
