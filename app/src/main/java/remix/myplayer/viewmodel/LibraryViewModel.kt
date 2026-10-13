@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -40,6 +41,7 @@ import remix.myplayer.repo.PlayListRepository
 import remix.myplayer.repo.ServerConfigRepository
 import remix.myplayer.repo.ServerRepository
 import remix.myplayer.repo.SongRepository
+import remix.myplayer.repo.WebDavRepository
 import remix.myplayer.repo.usecase.ExportPlayListUseCase
 import remix.myplayer.repo.usecase.PlayFromUriUseCase
 import remix.myplayer.service.MusicEventCallback
@@ -65,6 +67,7 @@ class LibraryViewModel @Inject constructor(
   private val historyRepo: HistoryRepository,
   private val serverConfigRepository: ServerConfigRepository,
   private val serverRepository: ServerRepository,
+  private val webDavRepo: WebDavRepository,
   val settingPrefs: SettingPrefs,
   private val exportPlayListUseCase: ExportPlayListUseCase,
   private val playFromUriUseCase: PlayFromUriUseCase
@@ -88,7 +91,21 @@ class LibraryViewModel @Inject constructor(
     .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
   private val _folders = MutableStateFlow<List<Folder>>(emptyList())
-  val folders: StateFlow<List<Folder>> = _folders.asStateFlow()
+
+  /**
+   * 文件夹标签数据：本地（或服务器模式）文件夹为基底，实时合并已保存的 WebDAV 条目。
+   * WebDAV 添加/移除时此列表自动增删对应条目，无需重新扫描媒体库。
+   */
+  val folders: StateFlow<List<Folder>> = combine(_folders, webDavRepo.allWebDav()) { base, davs ->
+    base + davs.map { dav ->
+      Folder(
+        name = dav.alias,
+        count = 0,
+        path = "webdav://${dav.server.removeSuffix("/")}",
+        remote = dav
+      )
+    }
+  }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
   val historySongs = historyRepo.allHistories().map { histories ->
     histories.mapNotNull { history ->

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,22 +61,29 @@ fun FolderScreen() {
 
   LazyColumn(modifier = Modifier.fillMaxHeight()) {
     itemsIndexed(folders, key = { _, folder ->
-      folder.path
+      folder.remote?.let { "webdav_${it.id}" } ?: folder.path
     }) { pos, folder ->
       FolderItem(
         folder,
         selected = selectedFolders.contains(folder.getKey()),
-        popupEnabled = popupEnabled,
+        popupEnabled = popupEnabled && folder.remote == null,
         onClick = {
           if (multiSelectState.where == MultiSelectState.Where.Folder) {
             mainVM.updateMultiSelectModel(folder)
             return@FolderItem
           }
 
-          nav.navigate(DetailScreenRoute(folder = folder))
+          val remote = folder.remote
+          if (remote != null) {
+            nav.navigate(remote)
+          } else {
+            nav.navigate(DetailScreenRoute(folder = folder))
+          }
         },
         onLongClick = {
-          mainVM.showMultiSelect(context, MultiSelectState.Where.Folder, folder)
+          if (folder.remote == null) {
+            mainVM.showMultiSelect(context, MultiSelectState.Where.Folder, folder)
+          }
         }
       )
     }
@@ -119,8 +127,15 @@ fun FolderItem(
       enabled = popupEnabled
     )
 
+    val isRemote = folder.remote != null
+    val remoteServer = folder.remote?.server ?: ""
+
     TextSecondary(
-      text = pluralStringResource(R.plurals.song_num, folder.count, folder.count),
+      text = if (isRemote) stringResource(R.string.webdav) else pluralStringResource(
+        R.plurals.song_num,
+        folder.count,
+        folder.count
+      ),
       modifier = Modifier
         .align(Alignment.CenterEnd)
         .padding(end = 78.dp)
@@ -136,7 +151,7 @@ fun FolderItem(
       verticalArrangement = Arrangement.Center
     ) {
       TextPrimary(text = folder.name ?: "", fontSize = 12.sp)
-      TextSecondary(text = folder.path, fontSize = 10.sp)
+      TextSecondary(text = if (isRemote) remoteServer else folder.path, fontSize = 10.sp)
     }
 
   }

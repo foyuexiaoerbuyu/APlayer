@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import remix.myplayer.R
+import remix.myplayer.repo.AbstractRepository
 import remix.myplayer.ui.dialog.dismissLoading
 import remix.myplayer.ui.dialog.showLoading
 import remix.myplayer.ui.dialog.updateLoadingText
@@ -90,9 +91,19 @@ class MediaScanner(private val context: Context) {
   }
 
   private fun isAudioFile(file: File): Boolean {
+    if (isCallRecording(file)) {
+      return false
+    }
     val ext = getFileExtension(file.name)
     val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext)
     return !mime.isNullOrEmpty() && mime.startsWith("audio") && !mime.contains("mpegurl")
+  }
+
+  private fun isCallRecording(file: File): Boolean {
+    val path = file.absolutePath.replace('\\', '/')
+    return AbstractRepository.CALL_RECORD_PATTERNS.any { pattern ->
+      path.contains(pattern.removePrefix("%").removeSuffix("%"), ignoreCase = true)
+    }
   }
 
   private fun getFileExtension(fileName: String): String? {

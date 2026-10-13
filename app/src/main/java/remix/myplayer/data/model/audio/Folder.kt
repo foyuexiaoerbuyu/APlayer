@@ -1,6 +1,7 @@
 package remix.myplayer.data.model.audio
 
 import kotlinx.serialization.Serializable
+import remix.myplayer.data.db.room.entity.WebDav
 import java.io.Serial
 
 /**
@@ -10,7 +11,8 @@ import java.io.Serial
 data class Folder(
   val name: String?,
   val count: Int,
-  val path: String
+  val path: String,
+  val remote: WebDav? = null
 ) : APlayerModel {
 
   override fun getKey(): String {
