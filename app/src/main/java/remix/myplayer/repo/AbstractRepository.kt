@@ -14,11 +14,12 @@ abstract class AbstractRepository(private val settingPrefs: SettingPrefs) {
     get() {
       val deleteIds = settingPrefs.deleteIds
       val blacklist = settingPrefs.blacklist
-      val baseSelection = " _data != '' AND " + Audio.Media.SIZE + " > " + settingPrefs.scanSize
-      if (deleteIds.isEmpty() && blacklist.isEmpty()) {
-        return baseSelection
+      val builder = StringBuilder(
+        " _data != '' AND " + Audio.Media.SIZE + " > " + settingPrefs.scanSize
+      )
+      for (pattern in CALL_RECORD_PATTERNS) {
+        builder.append(" AND ").append(Audio.Media.DATA).append(" NOT LIKE ?")
       }
-      val builder = StringBuilder(baseSelection)
       var i = 0
       if (deleteIds.isNotEmpty()) {
         builder.append(" AND ")
@@ -46,11 +47,14 @@ abstract class AbstractRepository(private val settingPrefs: SettingPrefs) {
   val baseSelectionArgs: Array<String?>
     get() {
       val blacklist = settingPrefs.blacklist
-      val selectionArgs = arrayOfNulls<String>(blacklist.size)
-      val iterator: Iterator<String> = blacklist.iterator()
+      val selectionArgs = arrayOfNulls<String>(CALL_RECORD_PATTERNS.size + blacklist.size)
       var i = 0
-      while (iterator.hasNext()) {
-        selectionArgs[i] = iterator.next() + "%"
+      for (pattern in CALL_RECORD_PATTERNS) {
+        selectionArgs[i] = pattern
+        i++
+      }
+      for (path in blacklist) {
+        selectionArgs[i] = path + "%"
         i++
       }
       return selectionArgs
@@ -125,6 +129,23 @@ abstract class AbstractRepository(private val settingPrefs: SettingPrefs) {
 
   companion object {
     const val CUSTOMSORT = "CUSTOMSORT"
+
+    /**
+     * 通话录音常见目录特征（SQL LIKE 模式）。
+     * 覆盖原生 Android（Recordings/Call Recordings）、小米（MIUI/sound_recorder/call_rec）、
+     * 华为（Record/Recordings/Call Record）、三星（Sounds/Call）等常见录音路径。
+     */
+    val CALL_RECORD_PATTERNS: List<String> = listOf(
+      "%/Call Recordings/%",
+      "%/call_rec/%",
+      "%/CallRecord/%",
+      "%/Call Record/%",
+      "%/Recordings/Call/%",
+      "%/Record/Call%",
+      "%/Record%",
+      "%/PhoneRecord/%",
+      "%/通话录音/%"
+    )
 
     fun makeInStrQuery(ids: List<Long>): String {
       return Audio.Media._ID + " in(" + makeInStr(ids) + ")"
