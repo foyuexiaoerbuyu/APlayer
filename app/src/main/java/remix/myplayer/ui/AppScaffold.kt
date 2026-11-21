@@ -1,6 +1,7 @@
 package remix.myplayer.ui
 
 import android.os.Build
+import android.util.Log
 import androidx.activity.BackEventCompat
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.PredictiveBackHandler
@@ -17,12 +18,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -56,6 +59,16 @@ fun AppScaffold(content: @Composable () -> Unit) {
 
   fun calculateRenderedProgress(renderedOffset: Float = calculateRenderedOffset()): Float {
     return (1f - renderedOffset / screenHeight).coerceIn(0f, 1f)
+  }
+
+  LaunchedEffect(Unit) {
+    snapshotFlow { predictiveBackProgress to playingScreenState.offset }.collect { pair ->
+      val rendered = calculateRenderedOffset()
+      Log.d(
+        "APFLASH",
+        "t=${android.os.SystemClock.uptimeMillis()} p=${pair.first} off=${pair.second} rendered=$rendered h=$screenHeight visible=$isVisible"
+      )
+    }
   }
 
   Box(
@@ -115,13 +128,26 @@ fun AppScaffold(content: @Composable () -> Unit) {
       PredictiveBackHandler(
         enabled = isVisible && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
       ) { progress ->
+        Log.d("APFLASH", "PB block start")
         try {
           progress.collect { backEvent: BackEventCompat ->
             predictiveBackProgress = backEvent.progress
           }
-          playingScreenState.animateTo(PlayingScreenValue.Hidden)
-          predictiveBackProgress = 0f
+          Log.d("APFLASH", "PB collect done")
+          // PredictiveBackHandler 的协程在手势结束/返回键触发后会被取消，
+          // 收起动画必须放到外部 scope 执行，否则面板会卡在半途，
+          // 返回后底部残留一截半透明面板阴影
+          scope.launch {
+            Log.d("APFLASH", "PB settle start off=${playingScreenState.offset} p=$predictiveBackProgress")
+            try {
+              playingScreenState.animateTo(PlayingScreenValue.Hidden)
+            } finally {
+              predictiveBackProgress = 0f
+              Log.d("APFLASH", "PB settle done off=${playingScreenState.offset}")
+            }
+          }
         } catch (_: CancellationException) {
+          Log.d("APFLASH", "PB cancelled p=$predictiveBackProgress off=${playingScreenState.offset}")
           predictiveBackProgress = 0f
         }
       }
